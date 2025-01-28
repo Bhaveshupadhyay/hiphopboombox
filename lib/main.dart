@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:boombox/backend/api.dart';
 import 'package:boombox/bloc/bottom_block.dart';
 import 'package:boombox/bloc/bottom_event.dart';
 import 'package:boombox/bloc/bottom_state.dart';
@@ -13,21 +12,22 @@ import 'package:boombox/screens/main_screens/account/account_cubit.dart';
 import 'package:boombox/screens/main_screens/home.dart';
 import 'package:boombox/screens/main_screens/polls/poll_bloc.dart';
 import 'package:boombox/screens/main_screens/polls/polls.dart';
+import 'package:boombox/screens/main_screens/raffle/raffle.dart';
+import 'package:boombox/screens/main_screens/raffle/raffle_cubit.dart';
 import 'package:boombox/screens/main_screens/search/search.dart';
 import 'package:boombox/screens/main_screens/search/search_cubit.dart';
 import 'package:boombox/screens/video_screen/video_detail.dart';
-import 'package:boombox/screens/welcome/welcome.dart';
 import 'package:boombox/theme/dark_theme.dart';
 import 'package:boombox/theme/light_theme.dart';
 import 'package:boombox/theme/theme_cubit.dart';
 import 'package:boombox/theme/theme_state.dart';
-import 'package:boombox/webview/show_webview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:month_year_picker/month_year_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backend/data_bloc.dart';
@@ -36,6 +36,7 @@ import 'firebase_options.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'modal/user_details.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // Import localization
 // used to pass messages from event handler to the UI
 final _messageStreamController = BehaviorSubject<RemoteMessage>();
 
@@ -138,6 +139,10 @@ class MyApp extends StatelessWidget {
                 theme: LightTheme().lightTheme,
                 darkTheme: DarkTheme().darkTheme,
                 themeMode: themeMode,
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  MonthYearPickerLocalizations.delegate,
+                ],
                 home: child,
               );
             },
@@ -158,9 +163,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Widget> _list=  [const Home(),Search(),const Polls(), const Account()];
+  final List<Widget> _list=  [const Home(),Search(),const Polls(),const Raffle(), const Account()];
 
-  final List<Widget> _list2=  [const NoContent(),Search(),const Polls(),const Account()];
+  final List<Widget> _list2=  [const NoContent(),Search(),const Polls(),const Raffle(),const Account()];
 
   Future<void> setupInteractedMessage() async {
     // Get any messages which caused the application to open from
@@ -209,6 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
           }),
           BlocProvider(create: (context)=>PollCubit()..fetchPoll()),
           BlocProvider(create: (context)=>VoteCubit()),
+          BlocProvider(create: (context)=>RaffleCubit()..getRaffle()),
 
           BlocProvider(create: (context){
             return AccountCubit()..isLoggedIn();
@@ -268,6 +274,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     BottomNavigationBarItem(
                         icon: Icon(Icons.poll,),
                         label: "Poll"
+                    ),
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.shop,),
+                        label: "Raffle"
                     ),
                     BottomNavigationBarItem(
                         icon: Icon(Icons.person_2_outlined,),

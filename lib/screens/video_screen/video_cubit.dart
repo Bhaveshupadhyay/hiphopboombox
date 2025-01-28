@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:boombox/adapter/expanded_news_block.dart';
+import 'package:boombox/widget/expanded_news.dart';
 import 'package:boombox/backend/api.dart';
 import 'package:boombox/backend/data_event.dart';
 import 'package:boombox/modal/category_modal.dart';
@@ -196,6 +196,28 @@ class CommentCubit extends Cubit<FetchCommentState>{
     emit(CommentLoaded(oldList,_hasReachedMax));
   }
 
+  Future<void> reloadComments() async {
+    _hasReachedMax=false;
+    if(_isLoading) return;
+
+    emit(CommentLoading());
+    _isLoading=true;
+    List<CommentModal> list= await MyApi.getInstance.getComments(postId, 0);
+    _isLoading=false;
+    if(list.isEmpty ){
+      _hasReachedMax=true;
+    }
+
+    if(list.length<5){
+      _hasReachedMax=true;
+    }
+
+    if (isClosed) return;
+    emit(CommentLoaded(list,_hasReachedMax));
+  }
+
+
+
   Future<void> insertComments(String text)async {
     if(UserDetails.id==null || UserDetails.id==''){
       emit(NotLoggedIn());
@@ -209,7 +231,7 @@ class CommentCubit extends Cubit<FetchCommentState>{
     CommentModal commentModal=await MyApi.getInstance.insertComment(UserDetails.id!, postId, text);
     emit(CommentInsertLoading());
     oldList.insert(0, commentModal);
-    print(oldList.length);
+    // print(oldList.length);
     emit(CommentLoaded(oldList,_hasReachedMax));
   }
 

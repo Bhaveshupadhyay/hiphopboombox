@@ -26,7 +26,7 @@ class BlockedUsers extends StatelessWidget {
             child: BlocListener<BlockedUserCubit,bool>(
               listener: (BuildContext context, bool isAdminBlocked) {
                 if(!isAdminBlocked && !isStart){
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (builder)=>MyHomePage()),(Route<dynamic> route) => false);
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (builder)=>const MyHomePage()),(Route<dynamic> route) => false);
                 }
               },
               child: BlocBuilder<BlockedUserCubit,bool>(

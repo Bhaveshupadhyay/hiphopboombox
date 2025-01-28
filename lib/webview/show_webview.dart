@@ -16,7 +16,6 @@ class _ShowWebViewState extends State<ShowWebView> {
   
   @override
   void initState() {
-    print(widget.link+'bjhbh');
     webViewController..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..loadRequest(Uri.parse(widget.link));
     super.initState();
@@ -25,7 +24,6 @@ class _ShowWebViewState extends State<ShowWebView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(),
         centerTitle: true,
         title: Text('',
           style: TextStyle(

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../adapter/report_alert.dart';
 import '../../utils/convert_utils.dart';
+import '../../widget/report_alert.dart';
 
 class ReplyWidget extends StatelessWidget {
   final ReplyModal replyModal;

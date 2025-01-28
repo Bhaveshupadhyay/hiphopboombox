@@ -1,47 +1,41 @@
-import 'package:boombox/adapter/expanded_news_block.dart';
+import 'package:boombox/screens/video_screen/description.dart';
+import 'package:boombox/screens/video_screen/reply/reply.dart';
+import 'package:boombox/widget/expanded_news.dart';
 import 'package:boombox/modal/comment_modal.dart';
 import 'package:boombox/modal/postmodal.dart';
-import 'package:boombox/modal/reply_modal.dart';
 import 'package:boombox/screens/blocked_users/blocked_user_cubit.dart';
 import 'package:boombox/screens/login/login.dart';
 import 'package:boombox/screens/video_screen/comment_widget.dart';
 import 'package:boombox/screens/video_screen/full_screen_portrait.dart';
 import 'package:boombox/screens/video_screen/landscape_video.dart';
 import 'package:boombox/screens/video_screen/portrait_video.dart';
-import 'package:boombox/screens/video_screen/reply_widget.dart';
 import 'package:boombox/screens/video_screen/report/report_cubit.dart';
 import 'package:boombox/screens/video_screen/video_cubit.dart';
 import 'package:boombox/screens/video_screen/video_event.dart';
 import 'package:boombox/utils/utils.dart';
 import 'package:boombox/webview/show_webview.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../main.dart';
 import '../../utils/convert_utils.dart';
+import 'comment/comment.dart';
 
 class VideoDetail extends StatelessWidget {
   final PostModal postModal;
   VideoDetail({super.key, required this.postModal});
 
 
-  final TextEditingController _commentController=TextEditingController();
-  final TextEditingController _replyController=TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     // _setPortraitOrientation();
     List<String> socialMediaLinks= postModal.socialMedia!.split("http").where((link) => link.isNotEmpty).toList();
+    double topPadding= MediaQuery.paddingOf(context).top; //status bar or notch height etc
 
     return MultiBlocProvider(
       providers: [
@@ -54,7 +48,6 @@ class VideoDetail extends StatelessWidget {
       ],
       child: BlocBuilder<VideoOrientationCubit,VideoOrientation>(
         builder: (BuildContext context, VideoOrientation state) {
-
           if(state is VideoLandscape){
             return const LandscapeVideo();
           }
@@ -68,6 +61,7 @@ class VideoDetail extends StatelessWidget {
 
           return Scaffold(
             body: SafeArea(
+              bottom: false,
               child: Column(
                 children: [
                   const PortraitVideo(),
@@ -76,370 +70,364 @@ class VideoDetail extends StatelessWidget {
 
                   BlocBuilder<DesCommCubit,VideoState>(
                       builder: (context, state){
-                        if(state is DescriptionShow){
-                          return _showDialog(context);
-                        }
-                        else if(state is CommentShow){
-                          return _showComments(context);
-                        }
-                        else if(state is ReplyShow){
-                          return _showReplies(state.commentModal,context);
-                        }
-                        else{
-                          return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(postModal.title??'',
-                                      style: TextStyle(
-                                        fontFamily: GoogleFonts.poppins().fontFamily,
-                                        fontSize: 18.sp,
-                                        fontWeight: FontWeight.bold,
+                        return Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10.w),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(postModal.title??'',
+                                    style: TextStyle(
+                                      fontFamily: GoogleFonts.poppins().fontFamily,
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                  SizedBox(height: 5.h,),
+                                  Row(
+                                    children: [
+                                      Text('${ConvertUtils.formatNumber(int.parse(postModal.views??'0'))} views',
+                                        style: TextStyle(
+                                          color: Theme.of(context).brightness==Brightness.light?
+                                          Colors.black54 : Colors.white54,
+                                          fontFamily: GoogleFonts.poppins().fontFamily,
+                                          fontSize: 14.sp,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                    ),
-                                    SizedBox(height: 5.h,),
-                                    Row(
+                                      SizedBox(width: 10.w,),
+                                      Text(ConvertUtils.getTimeDiff(postModal.date??''),
+                                        style: TextStyle(
+                                          color: Theme.of(context).brightness==Brightness.light?
+                                          Colors.black54 : Colors.white54,
+                                          fontFamily: GoogleFonts.poppins().fontFamily,
+                                          fontSize: 14.sp,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                      ),
+                                      SizedBox(width: 10.w,),
+                                      InkWell(
+                                        onTap: (){
+                                          _showDialog(context: context, topPadding: topPadding, isDescription: true);
+                                          // context.read<DesCommCubit>().showDescription();
+                                        },
+                                        child: Text("...more",
+                                          style: TextStyle(
+                                              fontFamily: GoogleFonts.poppins().fontFamily,
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 20.h,),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        Text('${ConvertUtils.formatNumber(int.parse(postModal.views??'0'))} views',
-                                          style: TextStyle(
-                                            color: Theme.of(context).brightness==Brightness.light?
-                                            Colors.black54 : Colors.white54,
-                                            fontFamily: GoogleFonts.poppins().fontFamily,
-                                            fontSize: 14.sp,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                        ),
-                                        SizedBox(width: 10.w,),
-                                        Text(ConvertUtils.getTimeDiff(postModal.date??''),
-                                          style: TextStyle(
-                                            color: Theme.of(context).brightness==Brightness.light?
-                                            Colors.black54 : Colors.white54,
-                                            fontFamily: GoogleFonts.poppins().fontFamily,
-                                            fontSize: 14.sp,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                        ),
-                                        SizedBox(width: 10.w,),
-                                        InkWell(
-                                          onTap: (){
-                                            context.read<DesCommCubit>().showDescription();
-                                          },
-                                          child: Text("...more",
-                                            style: TextStyle(
-                                                fontFamily: GoogleFonts.poppins().fontFamily,
-                                                fontSize: 14.sp,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 1
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                          ),
-                                        ),
-
-                                      ],
-                                    ),
-
-                                    SizedBox(height: 20.h,),
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          for(String link in socialMediaLinks)
-                                            Padding(
-                                              padding: EdgeInsets.only(right: 20.w),
-                                              child: InkWell(
-                                                onTap: ()=>_launchUrl(context,link),
-                                                child: Image.asset(_socialImg(link),
-                                                  height: 30.h,width: 30.w,
-                                                ),
+                                        for(String link in socialMediaLinks)
+                                          Padding(
+                                            padding: EdgeInsets.only(right: 20.w),
+                                            child: InkWell(
+                                              onTap: ()=>_launchUrl(context,link),
+                                              child: Image.asset(_socialImg(link),
+                                                height: 30.h,width: 30.w,
                                               ),
                                             ),
-                                          if(postModal.link!=null && postModal.link!.isNotEmpty)
-                                            InkWell(
+                                          ),
+                                        if(postModal.link!=null && postModal.link!.isNotEmpty)
+                                          InkWell(
                                               onTap: (){
                                                 Navigator.push(context, MaterialPageRoute(builder: (builder)=>ShowWebView(link: postModal.link??'https://hiphopboombox.com')));
                                               },
-                                              child: Image.asset('assets/images/funmesocial.jpeg',
-                                              height: 30.h,width: 30.w,
+                                              child: Image.asset(Theme.of(context).brightness==Brightness.light?
+                                              'assets/images/fumesocial_light_theme.png'
+                                                  :'assets/images/funmesocial_dark_theme.png',
+                                                height: 30.h,width: 30.w,
+                                                fit: BoxFit.fill,
                                               )
-                                            ),
+                                          ),
 
-                                          if(postModal.link!=null && postModal.link!.isNotEmpty)
-                                            SizedBox(width: 20.w,),
-                                        ],
-                                      ),
+                                        if(postModal.link!=null && postModal.link!.isNotEmpty)
+                                          SizedBox(width: 20.w,),
+                                      ],
                                     ),
+                                  ),
 
-                                    if(socialMediaLinks.isNotEmpty || postModal.link!.isNotEmpty)
-                                      SizedBox(height: 20.h,),
-
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          TextButton.icon(
-                                            onPressed: (){
-                                              _share(context);
-                                            },
-                                            style: ButtonStyle(
-                                              backgroundColor: WidgetStateProperty.all(
-                                                Theme.of(context).brightness==Brightness.light?
-                                                Colors.black12 : Colors.white12,),
-                                              padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 10.h,horizontal: 15.w)),
-                                            ),
-                                            label: Text("Share",
-                                              style: Theme.of(context).textTheme.titleSmall,
-                                            ),
-                                            icon: Icon(Icons.share,size: 15.sp,),
-                                          ),
-                                          SizedBox(width: 20.w,),
-
-                                          TextButton.icon(
-                                            onPressed: (){
-                                              _showReportDialog(context);
-                                            },
-                                            style: ButtonStyle(
-                                              backgroundColor: WidgetStateProperty.all(
-                                                  Theme.of(context).brightness==Brightness.light?
-                                                  Colors.black12 : Colors.white12
-                                              ),
-                                              padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 10.h,horizontal: 15.w)),
-                                            ),
-                                            label: Text("Report",
-                                                style: Theme.of(context).textTheme.titleSmall,
-                                            ),
-                                            icon: Icon(Icons.report,size: 15.sp,),
-                                          ),
-                                          SizedBox(width: 20.w,),
-
-                                          TextButton.icon(
-                                            onPressed: (){
-                                              _showBlockDialog(context);
-                                            },
-                                            style: ButtonStyle(
-                                              backgroundColor: WidgetStateProperty.all(
-                                                  Theme.of(context).brightness==Brightness.light?
-                                                  Colors.black12 : Colors.white12
-                                              ),
-                                              padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 10.h,horizontal: 15.w)),
-                                            ),
-                                            label: Text("Block",
-                                              style: Theme.of(context).textTheme.titleSmall,
-                                            ),
-                                            icon: Icon(Icons.block,size: 15.sp,),
-                                          ),
-                                          SizedBox(width: 20.w,),
-
-                                        ],
-                                      ),
-                                    ),
+                                  if(socialMediaLinks.isNotEmpty || postModal.link!.isNotEmpty)
                                     SizedBox(height: 20.h,),
-                                    BlocBuilder<CommentCubit,FetchCommentState>(
-                                      builder: (BuildContext context, state) {
-                                        // if(state is CommentLoading){
-                                        //   return const Center(child: CircularProgressIndicator(color: Colors.black,));
-                                        // }
-                                        if(state is CommentLoaded){
-                                          // print('1. $state ${state.list.length}');
-                                          return InkWell(
-                                            onTap: () {
-                                              context.read<DesCommCubit>()
-                                                  .showComment();
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                  color: Theme.of(context).brightness==Brightness.light?
-                                                  Colors.black12 : Colors.white12,
-                                                  borderRadius: BorderRadius
-                                                      .circular(10.r)
-                                              ),
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: 10.h,
-                                                  horizontal: 10.w),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment
-                                                    .start,
-                                                children: [
-                                                  Text('Comments',
-                                                    style: TextStyle(
-                                                        fontFamily: GoogleFonts
-                                                            .poppins()
-                                                            .fontFamily,
-                                                        fontSize: 16.sp,
-                                                        fontWeight: FontWeight
-                                                            .bold
+
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed: (){
+                                            _share(context);
+                                          },
+                                          style: ButtonStyle(
+                                            backgroundColor: WidgetStateProperty.all(
+                                              Theme.of(context).brightness==Brightness.light?
+                                              Colors.black12 : Colors.white12,),
+                                            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 10.h,horizontal: 15.w)),
+                                          ),
+                                          label: Text("Share",
+                                            style: Theme.of(context).textTheme.titleSmall,
+                                          ),
+                                          icon: Icon(Icons.share,size: 15.sp,),
+                                        ),
+                                        SizedBox(width: 20.w,),
+
+                                        TextButton.icon(
+                                          onPressed: (){
+                                            _showReportDialog(context);
+                                          },
+                                          style: ButtonStyle(
+                                            backgroundColor: WidgetStateProperty.all(
+                                                Theme.of(context).brightness==Brightness.light?
+                                                Colors.black12 : Colors.white12
+                                            ),
+                                            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 10.h,horizontal: 15.w)),
+                                          ),
+                                          label: Text("Report",
+                                            style: Theme.of(context).textTheme.titleSmall,
+                                          ),
+                                          icon: Icon(Icons.report,size: 15.sp,),
+                                        ),
+                                        SizedBox(width: 20.w,),
+
+                                        TextButton.icon(
+                                          onPressed: (){
+                                            _showBlockDialog(context);
+                                          },
+                                          style: ButtonStyle(
+                                            backgroundColor: WidgetStateProperty.all(
+                                                Theme.of(context).brightness==Brightness.light?
+                                                Colors.black12 : Colors.white12
+                                            ),
+                                            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 10.h,horizontal: 15.w)),
+                                          ),
+                                          label: Text("Block",
+                                            style: Theme.of(context).textTheme.titleSmall,
+                                          ),
+                                          icon: Icon(Icons.block,size: 15.sp,),
+                                        ),
+                                        SizedBox(width: 20.w,),
+
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 20.h,),
+                                  BlocBuilder<CommentCubit,FetchCommentState>(
+                                    builder: (BuildContext context, state) {
+                                      // if(state is CommentLoading){
+                                      //   return const Center(child: CircularProgressIndicator(color: Colors.black,));
+                                      // }
+                                      if(state is CommentLoaded){
+                                        // print('1. $state ${state.list.length}');
+                                        return InkWell(
+                                          onTap: () {
+                                            // context.read<DesCommCubit>()
+                                            //     .showComment();
+                                            _showDialog(context: context, topPadding: topPadding, isDescription: false,);
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: Theme.of(context).brightness==Brightness.light?
+                                                Colors.black12 : Colors.white12,
+                                                borderRadius: BorderRadius
+                                                    .circular(10.r)
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 10.h,
+                                                horizontal: 10.w),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .start,
+                                              children: [
+                                                Text('Comments',
+                                                  style: TextStyle(
+                                                      fontFamily: GoogleFonts
+                                                          .poppins()
+                                                          .fontFamily,
+                                                      fontSize: 16.sp,
+                                                      fontWeight: FontWeight
+                                                          .bold
+                                                  ),
+                                                ),
+                                                SizedBox(height: 5.h,),
+                                                if(state.list.isNotEmpty)
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        height: 30.h,
+                                                        width: 30.w,
+                                                        decoration: BoxDecoration(
+                                                            shape: BoxShape
+                                                                .circle,
+                                                            image: DecorationImage(
+                                                                image: NetworkImage(
+                                                                    state.list[0]
+                                                                        .image !=
+                                                                        '' ?
+                                                                    state.list[0]
+                                                                        .image! :
+                                                                    'https://dummyimage.com/600x400/000/fff&text=${state
+                                                                        .list[0]
+                                                                        .name![0].toUpperCase()}'),
+                                                                fit: BoxFit.fill
+                                                            )
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 10.w,),
+                                                      Expanded(
+                                                        child: Text("${state
+                                                            .list[0].text}",
+                                                          style: TextStyle(
+                                                            fontFamily: GoogleFonts
+                                                                .poppins()
+                                                                .fontFamily,
+                                                            fontSize: 13.sp,
+                                                          ),
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
+                                                else
+                                                  Container(
+                                                    width: double.infinity,
+                                                    padding: EdgeInsets.symmetric(vertical: 5.h,horizontal: 10.w),
+                                                    decoration: BoxDecoration(
+                                                      color: Theme.of(context).brightness==Brightness.light?
+                                                      Colors.black12 : Colors.white12,
+                                                      borderRadius: BorderRadius.circular(10.r),
+                                                    ),
+                                                    child: Text(
+                                                      'Add a comment...',
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 12.sp,
+                                                      ),
                                                     ),
                                                   ),
-                                                  SizedBox(height: 5.h,),
-                                                  if(state.list.isNotEmpty)
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          height: 30.h,
-                                                          width: 30.w,
-                                                          decoration: BoxDecoration(
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                              image: DecorationImage(
-                                                                  image: NetworkImage(
-                                                                      state.list[0]
-                                                                          .image !=
-                                                                          '' ?
-                                                                      state.list[0]
-                                                                          .image! :
-                                                                      'https://dummyimage.com/600x400/000/fff&text=${state
-                                                                          .list[0]
-                                                                          .name![0].toUpperCase()}'),
-                                                                  fit: BoxFit.fill
-                                                              )
-                                                          ),
-                                                        ),
-                                                        SizedBox(width: 10.w,),
-                                                        Expanded(
-                                                          child: Text("${state
-                                                              .list[0].text}",
-                                                            style: TextStyle(
-                                                              fontFamily: GoogleFonts
-                                                                  .poppins()
-                                                                  .fontFamily,
-                                                              fontSize: 13.sp,
-                                                            ),
-                                                            maxLines: 2,
-                                                            overflow: TextOverflow
-                                                                .ellipsis,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    )
-                                                  else
-                                                    Container(
-                                                      width: double.infinity,
-                                                      padding: EdgeInsets.symmetric(vertical: 5.h,horizontal: 10.w),
-                                                      decoration: BoxDecoration(
-                                                        color: Theme.of(context).brightness==Brightness.light?
-                                                        Colors.black12 : Colors.white12,
-                                                        borderRadius: BorderRadius.circular(10.r),
-                                                      ),
-                                                      child: Text(
-                                                        'Add a comment...',
-                                                        style: GoogleFonts.poppins(
-                                                          fontSize: 12.sp,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
+                                              ],
                                             ),
+                                          ),
+                                        );
+                                      }
+                                      else{
+                                        return Container();
+                                      }
+                                    },
+                                  ),
+
+                                  SizedBox(height: 20.h,),
+
+                                  // SizedBox(height: 10.h,),
+                                  // Expanded(
+                                  //   child: ListView.separated(
+                                  //       itemCount: 10,
+                                  //       itemBuilder: (context,index){
+                                  //         return const ExpandedNewsBlock();
+                                  //       },
+                                  //       separatorBuilder: (BuildContext context, int index)=>SizedBox(height: 20.h,)
+                                  //   ),
+                                  // )
+                                  BlocBuilder<VideoByTagCubit,FetchPostState>(
+                                      builder: (context,state){
+                                        if(state is PostLoading){
+                                          return _nextVideosShimmer(context);
+                                        }
+                                        else if(state is PostLoaded){
+                                          // print(state.list.length);
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              RichText(
+                                                textAlign: TextAlign.center,
+                                                text: TextSpan(
+                                                    text: "Next".toUpperCase(),
+                                                    style: TextStyle(
+                                                        fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
+                                                        fontSize: 20.sp,
+                                                        color: const Color(0xffee3483)
+                                                    ),
+                                                    children: [
+                                                      TextSpan(
+                                                        text: '  VIDEOS'.toUpperCase(),
+                                                        style: TextStyle(
+                                                            fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
+                                                            fontSize: 20.sp,
+                                                            color: const Color(0xff00e5fa)
+                                                        ),
+                                                      )
+                                                    ]
+                                                ),
+                                              ),
+                                              NotificationListener<ScrollNotification>(
+                                                onNotification: (scrollInfo) {
+                                                  if (!state.hasReachedMax &&
+                                                      scrollInfo.metrics.pixels ==
+                                                          scrollInfo.metrics
+                                                              .maxScrollExtent) {
+                                                    // print('end list');
+                                                    context.read<VideoByTagCubit>().loadPost();
+                                                  }
+                                                  return true;
+                                                },
+                                                child: ListView.builder(
+                                                    shrinkWrap: true,
+                                                    physics: const NeverScrollableScrollPhysics(),
+                                                    itemCount: state.list.length+(state.hasReachedMax?0:1),
+                                                    itemBuilder: (context,index){
+                                                      if(index<state.list.length) {
+                                                        return Column(
+                                                          children: [
+                                                            SizedBox(height: 20.h,),
+                                                            InkWell(
+                                                                onTap: ()=>
+                                                                    Navigator.pushReplacement(context,MaterialPageRoute(builder: (builder)=>VideoDetail(postModal: state.list[index]))),
+                                                                child: ExpandedNewsWidget(postModal: state.list[index],))
+                                                          ],
+                                                        );
+                                                      }
+                                                      else if(index<48){
+                                                        // print('myIndex: $index');
+                                                        context.read<VideoByTagCubit>().loadPost();
+                                                        return const Center(
+                                                          child: CircularProgressIndicator(
+                                                            color: Colors.black,),
+                                                        );
+                                                      }
+                                                      return null;
+                                                    }),
+                                              ),
+
+                                            ],
                                           );
                                         }
-                                        else{
-                                          return Container();
-                                        }
-                                      },
-                                    ),
-
-                                    SizedBox(height: 20.h,),
-
-                                    // SizedBox(height: 10.h,),
-                                    // Expanded(
-                                    //   child: ListView.separated(
-                                    //       itemCount: 10,
-                                    //       itemBuilder: (context,index){
-                                    //         return const ExpandedNewsBlock();
-                                    //       },
-                                    //       separatorBuilder: (BuildContext context, int index)=>SizedBox(height: 20.h,)
-                                    //   ),
-                                    // )
-                                    BlocBuilder<VideoByTagCubit,FetchPostState>(
-                                        builder: (context,state){
-                                          if(state is PostLoading){
-                                            return _nextVideosShimmer(context);
-                                          }
-                                          else if(state is PostLoaded){
-                                            // print(state.list.length);
-                                            return Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                RichText(
-                                                  textAlign: TextAlign.center,
-                                                  text: TextSpan(
-                                                      text: "Next".toUpperCase(),
-                                                      style: TextStyle(
-                                                          fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
-                                                          fontSize: 20.sp,
-                                                          color: const Color(0xffee3483)
-                                                      ),
-                                                      children: [
-                                                        TextSpan(
-                                                          text: '  VIDEOS'.toUpperCase(),
-                                                          style: TextStyle(
-                                                              fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
-                                                              fontSize: 20.sp,
-                                                              color: const Color(0xff00e5fa)
-                                                          ),
-                                                        )
-                                                      ]
-                                                  ),
-                                                ),
-                                                NotificationListener<ScrollNotification>(
-                                                  onNotification: (scrollInfo) {
-                                                    if (!state.hasReachedMax &&
-                                                        scrollInfo.metrics.pixels ==
-                                                            scrollInfo.metrics
-                                                                .maxScrollExtent) {
-                                                      // print('end list');
-                                                      context.read<VideoByTagCubit>().loadPost();
-                                                    }
-                                                    return true;
-                                                  },
-                                                  child: ListView.builder(
-                                                      shrinkWrap: true,
-                                                      physics: const NeverScrollableScrollPhysics(),
-                                                      itemCount: state.list.length+(state.hasReachedMax?0:1),
-                                                      itemBuilder: (context,index){
-                                                        if(index<state.list.length) {
-                                                          return Column(
-                                                            children: [
-                                                              SizedBox(height: 20.h,),
-                                                              InkWell(
-                                                                  onTap: ()=>
-                                                                      Navigator.pushReplacement(context,MaterialPageRoute(builder: (builder)=>VideoDetail(postModal: state.list[index]))),
-                                                                  child: ExpandedNewsBlock(postModal: state.list[index],))
-                                                            ],
-                                                          );
-                                                        }
-                                                        else if(index<48){
-                                                          // print('myIndex: $index');
-                                                          context.read<VideoByTagCubit>().loadPost();
-                                                          return const Center(
-                                                            child: CircularProgressIndicator(
-                                                              color: Colors.black,),
-                                                          );
-                                                        }
-                                                        return null;
-                                                      }),
-                                                ),
-
-                                              ],
-                                            );
-                                          }
-                                          return Container();
-                                        })
-                                  ],
-                                ),
+                                        return Container();
+                                      })
+                                ],
                               ),
                             ),
-                          );
-                        }
+                          ),
+                        );
                       })
                 ],
               ),
@@ -451,96 +439,25 @@ class VideoDetail extends StatelessWidget {
     );
   }
 
-  Widget _showDialog(BuildContext context){
 
-    return Expanded(
-      child: SizedBox(
-        width: double.infinity,
-        height: MediaQuery.of(context).size.height * 0.75,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10.w,vertical: 10.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Description',
-                    style: TextStyle(
-                        fontFamily: GoogleFonts.poppins().fontFamily,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold
-                    ),
-                  ),
-                  InkWell(
-                      onTap: (){
-                        context.read<DesCommCubit>().hideDescription();
-                      },
-                      child: Icon(Icons.close_sharp,size: 30.r,))
-                ],
-              ),
-              SizedBox(height: 5.h,),
-              const Divider(),
-              SizedBox(height: 5.h,),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(postModal.title??'',
-                        style: TextStyle(
-                          fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
-                          fontSize: 18.sp,
-                        ),
-                      ),
-                      SizedBox(height: 3.h,),
-                      Row(
-                        // mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Posted: ${DateFormat('dd MMMM yyyy').format(DateTime.parse(postModal.date??''))}',
-                            style: TextStyle(
-                                color: Theme.of(context).brightness==Brightness.light?
-                                Colors.black45 : Colors.white54,
-                                fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
-                                fontSize: 13.sp
-                            ),
-                          ),
-                          SizedBox(width: 10.w,),
-                          InkWell(
-                              onTap: ()=>Navigator.pop(context),
-                              child: Icon(Icons.remove_red_eye,color: const Color(0xffee3483),size: 15.r,)
-                          ),
-                          SizedBox(width: 2.w,),
-                          Text(ConvertUtils.formatCommaNumber(int.parse(postModal.views??'0')),
-                            style: TextStyle(
-                                color: Theme.of(context).brightness==Brightness.light?
-                                Colors.black45 : Colors.white54,
-                                fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.bold).fontFamily,
-                                fontSize: 13.sp
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 15.h,),
+  void _showDialog({required BuildContext context, required double topPadding,
+    required bool isDescription, }){
+    final dialogHeight= 1.sh-(0.25.sh+topPadding);
 
-                      SafeArea(
-                        child: Text(postModal.des??'',
-                          style: TextStyle(
-                            color: Theme.of(context).brightness==Brightness.light?
-                            Colors.black87 : Colors.white70,
-                            fontFamily: GoogleFonts.poppins().fontFamily,
-                            fontSize: 15.sp,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
+    showBottomSheet(
+        context: context,
+        constraints: BoxConstraints.expand(
+            width: double.infinity,
+            height: dialogHeight
         ),
-      ),
+        clipBehavior: Clip.none,
+        shape: const LinearBorder(),
+        builder: (context){
+          return isDescription?
+          Description(postModal: postModal)
+              :
+          CommentDialog(postId: postModal.id!);
+        }
     );
   }
 
@@ -574,330 +491,6 @@ class VideoDetail extends StatelessWidget {
     // }
     Navigator.push(context, MaterialPageRoute(builder: (builder)=>ShowWebView(link: 'http$url'.trim().replaceAll(',', ''))));
   }
-
-  Widget _showComments(BuildContext context){
-    return Expanded(
-      child: SizedBox(
-        width: double.infinity,
-        height: MediaQuery.of(context).size.height * 0.75,
-        child: BlocListener<CommentCubit,FetchCommentState>(
-          listener: (context,state){
-            // print(state);
-          },
-          child: BlocBuilder<CommentCubit,FetchCommentState>(
-            builder: (BuildContext context, FetchCommentState state) {
-              if(state is CommentLoading){
-                return const Center(child: CircularProgressIndicator());
-              }
-              else if(state is CommentLoaded){
-                // List<CommentModal> list=state as
-                // print('$state ${state.list.length}');
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w,vertical: 10.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Comments',
-                            style: TextStyle(
-                                fontFamily: GoogleFonts.poppins().fontFamily,
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          InkWell(
-                              onTap: (){
-                                context.read<DesCommCubit>().hideComment();
-                              },
-                              child: Icon(Icons.close_sharp,size: 30.r,))
-                        ],
-                      ),
-                      SizedBox(height: 5.h,),
-                      const Divider(),
-                      SizedBox(height: 5.h,),
-                      if(state.list.isNotEmpty)
-                        Expanded(
-                          child: NotificationListener<ScrollNotification>(
-                            onNotification: (scrollInfo) {
-                              if (!state.hasReachedMax &&
-                                  scrollInfo.metrics.pixels ==
-                                      scrollInfo.metrics.maxScrollExtent) {
-                                context.read<CommentCubit>().fetchComments();
-                              }
-                              return true;
-                            },
-                            child: ListView.separated(
-                                itemCount: state.list.length+(state.hasReachedMax?0:1),
-                                itemBuilder: (context,index){
-                                  if(index<state.list.length){
-                                    CommentModal commentModal= state.list[index];
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                                      child: CommentWidget(commentModal: commentModal,isReplyScreen: false,),
-                                    );
-                                  }
-                                  else{
-                                    return Column(
-                                      children: [
-                                        SizedBox(height: 5.h,),
-                                        const CircularProgressIndicator(),
-                                        SizedBox(height: 5.h,),
-                                      ],
-                                    );
-                                  }
-                                },
-                                separatorBuilder: (BuildContext context, int index){
-                                  return SizedBox(height: 20.h,);
-                                }
-                            ),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: Column(
-                            children: [
-                              SizedBox(height: 20.h,),
-                              Center(
-                                child: Text('No comments yet',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 15.sp
-                                  ),),
-                              ),
-                              Text('Say something to start the conversation',
-                                style: GoogleFonts.poppins(
-                                    color: Theme.of(context).brightness==Brightness.light?
-                                    Colors.black54 : Colors.white54,
-                                    fontSize: 15.sp
-                                ),),
-
-                            ],
-                          ),
-                        ),
-                      const Divider(),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 15.w,vertical: 5.h),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).brightness==Brightness.light?
-                                Colors.black12 : Colors.white12,
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: TextFormField(
-                                controller: _commentController,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Add a comment',
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 10.w)
-                                ),
-                                style: TextStyle(
-                                    fontFamily: GoogleFonts.poppins().fontFamily,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.bold
-
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 10.w,),
-                          if(state is CommentInsertLoading)
-                            const CircularProgressIndicator()
-                          else
-                            InkWell(
-                                onTap: (){
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  context.read<CommentCubit>().insertComments(_commentController.text);
-                                  _commentController.text='';
-                                },
-                                child: Icon(Icons.send,color: Colors.blue,size: 25.sp,)
-                            ),
-                        ],
-                      )
-                    ],
-                  ),
-                );
-              }
-              else if(state is NotLoggedIn){
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder)=>Login()));
-                });
-              }
-              return Container();
-            },
-          ),
-        ),
-      )
-    );
-  }
-
-  Widget _showReplies(CommentModal commentModal,BuildContext context){
-    context.read<ReplyCubit>().fetchReply(commentModal);
-    return Expanded(
-        child: SizedBox(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: BlocBuilder<ReplyCubit,FetchReplyState>(
-            builder: (context, state) {
-              if(state is ReplyLoading){
-                return const Center(child: CircularProgressIndicator());
-              }
-              else if(state is ReplyLoaded){
-                // List<CommentModal> list=state as
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w,vertical: 10.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          InkWell(
-                            onTap: (){
-                              context.read<DesCommCubit>().showComment();
-                            },
-                            child: Icon(Icons.arrow_back_ios,size: 30.r,)),
-                          SizedBox(width: 5.w,),
-
-                          Text('Replies',
-                            style: TextStyle(
-                                fontFamily: GoogleFonts.poppins().fontFamily,
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          const Spacer(),
-                          InkWell(
-                              onTap: (){
-                                context.read<DesCommCubit>().hideReply();
-                              },
-                              child: Icon(Icons.close_sharp,size: 30.r,))
-                        ],
-                      ),
-                      SizedBox(height: 5.h,),
-                      const Divider(),
-                      SizedBox(height: 5.h,),
-                      CommentWidget(commentModal: state.commentModal,isReplyScreen: true,),
-
-                      const Divider(),
-                      SizedBox(height: 5.h,),
-
-                      if(state.list.isNotEmpty)
-                        Expanded(
-                          child: NotificationListener<ScrollNotification>(
-                            onNotification: (scrollInfo) {
-                              if (!state.hasReachedMax &&
-                                  scrollInfo.metrics.pixels ==
-                                      scrollInfo.metrics.maxScrollExtent) {
-                                context.read<ReplyCubit>().loadMoreReply(commentModal);
-                              }
-                              return true;
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 25.w),
-                              child: ListView.separated(
-                                  itemCount: state.list.length+(state.hasReachedMax?0:1),
-                                  itemBuilder: (context,index){
-                                    if(index<state.list.length){
-                                      ReplyModal replyModal= state.list[index];
-                                      return Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 10.w),
-                                        child: ReplyWidget(replyModal: replyModal,),
-                                      );
-                                    }
-                                    else{
-                                      return Column(
-                                        children: [
-                                          SizedBox(height: 5.h,),
-                                          const CircularProgressIndicator(),
-                                          SizedBox(height: 5.h,),
-                                        ],
-                                      );
-                                    }
-                                  },
-                                  separatorBuilder: (BuildContext context, int index){
-                                    return SizedBox(height: 20.h,);
-                                  }
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: Column(
-                            children: [
-                              SizedBox(height: 20.h,),
-                              Center(
-                                child: Text('No Reply yet',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 15.sp
-                                  ),),
-                              ),
-                              Text('Say something to start the conversation',
-                                style: GoogleFonts.poppins(
-                                    color: Theme.of(context).brightness==Brightness.light?
-                                    Colors.black54 : Colors.white54,
-                                    fontSize: 15.sp
-                                ),),
-
-                            ],
-                          ),
-                        ),
-                      const Divider(),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 15.w,vertical: 5.h),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).brightness==Brightness.light?
-                                Colors.black12 : Colors.white12,
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: TextFormField(
-                                controller: _replyController,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Add a reply',
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 10.w)
-                                ),
-                                style: TextStyle(
-                                    fontFamily: GoogleFonts.poppins().fontFamily,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.bold
-
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 10.w,),
-                          InkWell(
-                              onTap: (){
-                                context.read<ReplyCubit>().insertReply(commentModal, _replyController.text);
-                                _replyController.text='';
-                              },
-                              child: state is ReplyInsertLoading? const CircularProgressIndicator():
-                              Icon(Icons.send,color: Colors.blue,size: 25.sp,)
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                );
-              }
-              else if(state is UserNotLoggedIn){
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (builder)=>Login()));
-                });
-              }
-              return Container();
-            },
-          ),
-        )
-    );
-  }
-
 
   Future<void> _share(BuildContext context) async {
     List<String> arr=(postModal.title??'').split(' ');
@@ -1080,17 +673,4 @@ class VideoDetail extends StatelessWidget {
       },
     );
   }
-  void _setPortraitOrientation() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-  }
-
-  void _setLandScapeOrientation() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
 }
-

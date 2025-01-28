@@ -1,4 +1,4 @@
-// import 'package:boombox/adapter/expanded_news_block.dart';
+// import 'package:boombox/widget/expanded_news.dart';
 // import 'package:boombox/modal/comment_modal.dart';
 // import 'package:boombox/modal/postmodal.dart';
 // import 'package:boombox/modal/reply_modal.dart';

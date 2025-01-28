@@ -62,13 +62,21 @@ class LightTheme{
         progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: Colors.black,
         ),
-        textButtonTheme: TextButtonThemeData(
+        textButtonTheme: const TextButtonThemeData(
             style: ButtonStyle(
                 iconColor: WidgetStatePropertyAll(Colors.black)
             )
         ),
       dividerColor: Colors.black26,
-
+      tooltipTheme: TooltipThemeData(
+          decoration: BoxDecoration(
+              color: Colors.grey.shade300
+          ),
+          textStyle: GoogleFonts.poppins(
+            color: Colors.black,
+              fontSize: 16.sp
+          )
+      ),
 
       // Define more light theme properties here
     );

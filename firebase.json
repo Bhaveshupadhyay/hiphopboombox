@@ -1,1 +1,1 @@
-
+{"flutter":{"platforms":{"android":{"default":{"projectId":"boombox-437af","appId":"1:421666460735:android:e5626767a3dda32289148a","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"boombox-437af","appId":"1:421666460735:ios:0bfc2407ce26334689148a","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"boombox-437af","configurations":{"android":"1:421666460735:android:e5626767a3dda32289148a","ios":"1:421666460735:ios:0bfc2407ce26334689148a"}}}}}}

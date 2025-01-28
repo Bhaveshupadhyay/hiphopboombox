@@ -62,11 +62,20 @@ class DarkTheme{
         progressIndicatorTheme: const ProgressIndicatorThemeData(
             color: Colors.white
         ),
-        textButtonTheme: TextButtonThemeData(
+        textButtonTheme: const TextButtonThemeData(
             style: ButtonStyle(
                 iconColor: WidgetStatePropertyAll(Colors.white)
             )
         ),
+      tooltipTheme: TooltipThemeData(
+          decoration: const BoxDecoration(
+              color: Colors.white
+          ),
+        textStyle: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 16.sp
+        )
+      ),
       dividerColor: Colors.white24,
       // Define more dark theme properties here
     );

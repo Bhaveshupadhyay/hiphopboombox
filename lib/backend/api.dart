@@ -6,6 +6,8 @@ import 'package:boombox/modal/comment_modal.dart';
 import 'package:boombox/modal/poll_modal.dart';
 import 'package:boombox/modal/postmodal.dart';
 import 'package:boombox/modal/reply_modal.dart';
+import 'package:boombox/modal/shoe_modal.dart';
+import 'package:boombox/modal/sneaker_brand.dart';
 import 'package:boombox/modal/user_details.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -181,16 +183,16 @@ class MyApi{
     return list;
   }
 
-  Future<bool> login(String email,String password)async {
-    bool isSuccess=false;
+  Future<Map<String,dynamic>> login(String email,String password)async {
+    Map<String,dynamic> json={};
     await http.post(Uri.parse('$baseUrl/auth/login.php'),body: {"email":email,"password":password})
         .then((response){
       if(response.statusCode==200){
         // print(response.body);
-        isSuccess=jsonDecode(response.body)['isSuccess'];
+        json=jsonDecode(response.body);
       }
     });
-    return isSuccess;
+    return json;
   }
 
   Future<bool> register(String email,String password,String name,String image,String ip)async {
@@ -401,6 +403,126 @@ class MyApi{
 
     return isSubmitted;
   }
+
+  Future<List<ShoeModal>> getRaffle()async {
+    List<ShoeModal> list=[];
+    http.Response response= await http.post(Uri.parse('$baseUrl/get/raffle.php',),
+        body: {"user_id": UserDetails.id??''});
+    if(response.statusCode==200){
+      // print(response.body);
+      var json = jsonDecode(response.body);
+      for(var raffle in json['raffles']){
+        list.add(ShoeModal.fromJson(raffle,json['primary_size']??'',json['gender']??'',));
+      }
+    }
+    return list;
+  }
+
+  Future<Map<String,String>> getRaffleSize(String raffleId)async {
+    Map<String,String> map={};
+    http.Response response= await http.post(Uri.parse('$baseUrl/get/raffleShoeSizes.php',),
+        body: {"raffle_id": raffleId});
+    if(response.statusCode==200){
+      var json = jsonDecode(response.body);
+      for(var size in json){
+        map[size['size']]=size['size'];
+      }
+    }
+    return map;
+  }
+
+  Future<List<ShoeModal>> getRaffleByCategory(String categoryId, String date, String brand)async {
+    List<ShoeModal> list=[];
+    http.Response response= await http.post(Uri.parse('$baseUrl/get/raffleByCategory.php'),
+    body: {"cat_id": categoryId, "date": date, "brand": brand});
+    if(response.statusCode==200){
+      // print(response.body);
+      for(var json in jsonDecode(response.body)){
+        list.add(ShoeModal.fromJson(json,'',''));
+      }
+    }
+    return list;
+  }
+
+  Future<List<ShoeModal>> filterSneaker(
+      {required String categoryId, String? month, String? year, String? brand})async {
+    List<ShoeModal> list=[];
+    http.Response response= await http.post(Uri.parse('$baseUrl/get/sneakerFilter.php'),
+    body: {"category": categoryId, "month": month??'',"year":year??'', "brand": brand??''});
+    if(response.statusCode==200){
+      if(response.body.isNotEmpty){
+        for(var json in jsonDecode(response.body)){
+          list.add(ShoeModal.fromJson(json,'',''));
+        }
+      }
+    }
+    return list;
+  }
+
+
+  Future<List<ShoeModal>> getRafflesOrderedByUsers()async {
+    List<ShoeModal> list=[];
+    http.Response response= await http.post(Uri.parse('$baseUrl/get/raffle_user.php'),
+    body: {"user_id": UserDetails.id});
+    if(response.statusCode==200){
+      // print(response.body);
+      for(var json in jsonDecode(response.body)){
+        list.add(ShoeModal.fromJson(json,'',''));
+      }
+    }
+    return list;
+  }
+
+  Future<void> sendVerifyEmail(
+      {required String gender, required String size, required String raffleId})async {
+    final prefs= await SharedPreferences.getInstance();
+    String email=prefs.getString('email')??'';
+
+    await http.post(Uri.parse('$baseUrl/mail/payment.php'),body: {
+      "email":email, "user_id": UserDetails.id,"gender": gender,"size":size, "raffle_id":raffleId })
+        .then((response){
+      if(response.statusCode==200){
+
+      }
+    });
+  }
+
+  Future<void> updateUserSize(
+      {required String gender, required String size})async {
+    if(UserDetails.id==null || UserDetails.id=='') return;
+
+    await http.post(Uri.parse('$baseUrl/update/userSize.php'),body: {
+      "user_id":UserDetails.id,"gender": gender,"user_size":size })
+        .then((response){
+      if(response.statusCode==200){
+
+      }
+    });
+  }
+
+  Future<void> updateUserDetails(
+      {required String name, required String image})async {
+    if(UserDetails.id==null || UserDetails.id=='') return;
+
+    await http.post(Uri.parse('$baseUrl/update/avatar.php'),body: {
+      "user_id":UserDetails.id,"name": name,"image":image })
+        .then((response){
+      if(response.statusCode==200){
+      }
+    });
+  }
+
+  Future<List<SneakerBrand>> getSneakersBrands()async {
+    List<SneakerBrand> list=[];
+    await http.get(Uri.parse('$baseUrl/get/brands.php'),)
+        .then((response){
+      if(response.statusCode==200){
+        list= (jsonDecode(response.body) as List).map((brand)=>SneakerBrand.fromJson(brand)).toList();
+      }
+    });
+    return list;
+  }
+
 
 
 }

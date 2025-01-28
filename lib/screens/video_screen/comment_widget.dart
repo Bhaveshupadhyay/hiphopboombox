@@ -1,4 +1,4 @@
-import 'package:boombox/adapter/report_alert.dart';
+import 'package:boombox/widget/report_alert.dart';
 import 'package:boombox/modal/comment_modal.dart';
 import 'package:boombox/screens/video_screen/video_cubit.dart';
 import 'package:boombox/screens/video_screen/video_event.dart';
@@ -128,7 +128,10 @@ class CommentWidget extends StatelessWidget {
           
               if(commentModal.showReplies && !isReplyScreen)
                 InkWell(
-                  onTap: ()=>context.read<DesCommCubit>().showReply(commentModal),
+                  onTap: (){
+                    context.read<DesCommCubit>().showReply(commentModal);
+                    // Navigator.pushNamed(context, '/reply');
+                  },
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 5.h),
                     child: Text('Show Replies',
@@ -144,7 +147,10 @@ class CommentWidget extends StatelessWidget {
                 )
               else if(!isReplyScreen)
                 InkWell(
-                  onTap: ()=>context.read<DesCommCubit>().showReply(commentModal),
+                  onTap: (){
+                    context.read<DesCommCubit>().showReply(commentModal);
+                    // Navigator.pushNamed(context, '/reply',arguments: commentModal);
+                  },
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 5.h),
                     child: Text('Add Reply',

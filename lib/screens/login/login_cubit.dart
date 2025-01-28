@@ -1,4 +1,5 @@
 import 'package:boombox/backend/api.dart';
+import 'package:boombox/modal/user_details.dart';
 import 'package:boombox/screens/login/login_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,12 +36,14 @@ class LoginCubit extends Cubit<LoginState>{
       return;
     }
     emit(LoginLoading());
-    bool isSuccess=await MyApi.getInstance.login(email, password);
+    var json=await MyApi.getInstance.login(email, password);
 
-    if(isSuccess){
+    if(json['isSuccess']){
       final prefs= await SharedPreferences.getInstance();
       prefs.setBool('isLoggedIn',true);
       prefs.setString('email',email);
+      prefs.setString('userId','${json['userId']}');
+      UserDetails.id='${json['userId']}';
       emit(LoginSuccess());
     }
     else{

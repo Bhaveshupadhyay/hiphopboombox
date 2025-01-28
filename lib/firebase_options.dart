@@ -54,15 +54,16 @@ class DefaultFirebaseOptions {
     appId: '1:421666460735:android:e5626767a3dda32289148a',
     messagingSenderId: '421666460735',
     projectId: 'boombox-437af',
-    storageBucket: 'boombox-437af.appspot.com',
+    storageBucket: 'boombox-437af.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDqGciPPO0recEiBvQyW6e4GS5n9W4wV8Y',
-    appId: '1:421666460735:ios:1b92f5199ad174c989148a',
+    appId: '1:421666460735:ios:0bfc2407ce26334689148a',
     messagingSenderId: '421666460735',
     projectId: 'boombox-437af',
-    storageBucket: 'boombox-437af.appspot.com',
-    iosBundleId: 'com.app.hiphopboombox',
+    storageBucket: 'boombox-437af.firebasestorage.app',
+    iosBundleId: 'com.hiphop.boombox',
   );
+
 }

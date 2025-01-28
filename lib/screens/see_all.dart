@@ -1,4 +1,3 @@
-import 'package:boombox/adapter/expanded_news_block.dart';
 import 'package:boombox/modal/postmodal.dart';
 import 'package:boombox/screens/video_screen/video_detail.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../utils/utils.dart';
+import '../widget/expanded_news.dart';
 
 class SeeAll extends StatelessWidget {
   final String text1,text2;
@@ -41,29 +41,27 @@ class SeeAll extends StatelessWidget {
           ),
         ),
       ),
-      body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: 10.h),
-            child: Column(
-              children: [
-                Expanded(
-                    child: ListView.separated(
-                        itemCount: list.length,
-                        itemBuilder: (context,index){
-                          return Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10.w),
-                            child: InkWell(
-                              onTap: ()=>Navigator.push(context,MaterialPageRoute(builder: (builder)=> VideoDetail(postModal: list[index],))),
-                              child: ExpandedNewsBlock(postModal: list[index],),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index)=>SizedBox(height: 20.h,)
-                    )
+      body: Padding(
+        padding: EdgeInsets.only(bottom: 10.h),
+        child: Column(
+          children: [
+            Expanded(
+                child: ListView.separated(
+                    itemCount: list.length,
+                    itemBuilder: (context,index){
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w),
+                        child: InkWell(
+                          onTap: ()=>Navigator.push(context,MaterialPageRoute(builder: (builder)=> VideoDetail(postModal: list[index],))),
+                          child: ExpandedNewsWidget(postModal: list[index],),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (BuildContext context, int index)=>SizedBox(height: 20.h,)
                 )
-              ],
-            ),
-          )
+            )
+          ],
+        ),
       ),
     );
   }

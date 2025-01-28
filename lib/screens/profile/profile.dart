@@ -1,31 +1,31 @@
 import 'dart:io';
 
+import 'package:boombox/modal/user_details.dart';
 import 'package:boombox/screens/profile/profile_cubit.dart';
 import 'package:boombox/screens/profile/profile_state.dart';
 import 'package:boombox/screens/register/register_state.dart';
 import 'package:boombox/screens/register/regsiter_cubit.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 
-import '../../backend/api.dart';
 import '../../main.dart';
 
 class Profile extends StatelessWidget {
-  final String email,password;
-  final bool isUserExist;
-  Profile({super.key,required this.email,required this.password, required this.isUserExist});
+  final String? email,password;
+  final UserDetails? userDetails;
+  Profile({super.key, this.email, this.password, this.userDetails});
 
   final TextEditingController _nameController=TextEditingController();
 
   final GlobalKey<FormState> globalKey=GlobalKey();
-  String profileImg='';
 
   @override
   Widget build(BuildContext context) {
+    String profileImg=userDetails!=null?userDetails!.image??'' : '';
+    _nameController.text=userDetails!=null? userDetails!.name??'' : '';
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (create)=>ImageCubit()),
@@ -53,7 +53,7 @@ class Profile extends StatelessWidget {
                     SizedBox(height: 5.h,),
                     BlocBuilder<ImageCubit,ImageState>(
                       builder: (context,state){
-                        bool isOnline=false;
+                        bool isOnline=userDetails!=null;
                         if(state is ImageLoaded){
                           profileImg=state.path;
                           isOnline=state.isOnline;
@@ -70,8 +70,8 @@ class Profile extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     image: DecorationImage(
                                         image: profileImg.isNotEmpty?
-                                        isOnline && isUserExist?
-                                        Image.network('uploads/$profileImg',).image
+                                        isOnline && userDetails!=null?
+                                        Image.network(profileImg,).image
                                             :
                                         Image.file(File(profileImg),).image
                                             :
@@ -85,7 +85,7 @@ class Profile extends StatelessWidget {
                                 child: Align(
                                     alignment: Alignment.topRight,
                                     child: Container(
-                                      padding: EdgeInsets.all(2),
+                                      padding: const EdgeInsets.all(2),
                                       decoration: const BoxDecoration(
                                           color: Colors.black,
                                           shape: BoxShape.circle
@@ -96,7 +96,7 @@ class Profile extends StatelessWidget {
                                               color: Colors.white,
                                               shape: BoxShape.circle
                                           ),
-                                          child: Icon(Icons.edit,color: Colors.black,size: 18,)),
+                                          child: const Icon(Icons.edit,color: Colors.black,size: 18,)),
                                     )),
                               ),
                               Positioned.fill(
@@ -162,13 +162,15 @@ class Profile extends StatelessWidget {
                           }
                           else if(state is RegisterSuccess){
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (builder)=>MyHomePage()),(Route<dynamic> route) => false);
+                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (builder)=>const MyHomePage()),(Route<dynamic> route) => false);
                             });
                           }
                           return InkWell(
                             onTap: () async {
                               FocusManager.instance.primaryFocus?.unfocus();
-                              context.read<RegisterCubit>().uploadProfileImg(email, password, _nameController.text, profileImg);
+                              if(globalKey.currentState!.validate()){
+                                context.read<RegisterCubit>().uploadProfileImg(email, password, _nameController.text, profileImg);
+                              }
                             },
                             child: Container(
                               width: double.infinity,
@@ -180,7 +182,7 @@ class Profile extends StatelessWidget {
                               child: Center(
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(vertical:10.h,horizontal: 20.w,),
-                                  child: Text(isUserExist?"Update":"Continue",
+                                  child: Text(userDetails!=null?"Update":"Continue",
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontFamily: GoogleFonts.poppins(fontWeight: FontWeight.normal).fontFamily,

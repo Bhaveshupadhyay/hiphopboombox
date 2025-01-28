@@ -3,13 +3,14 @@ import 'package:boombox/screens/blocked_users/blocked_users.dart';
 import 'package:boombox/screens/login/login.dart';
 import 'package:boombox/screens/main_screens/account/account_cubit.dart';
 import 'package:boombox/screens/main_screens/account/account_state.dart';
-import 'package:boombox/theme/theme_state.dart';
+import 'package:boombox/screens/main_screens/raffle/user_raffles/user_raffles.dart';
+import 'package:boombox/screens/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../theme/theme_cubit.dart';
+import '../../../main.dart';
 import '../../../webview/show_webview.dart';
 
 class Account extends StatelessWidget {
@@ -81,125 +82,96 @@ class Account extends StatelessWidget {
                     ],
                   ),
                 ),
-                // SizedBox(height: 20.h,),
-                // BlocBuilder<ThemeCubit,ThemeMode>(
-                //   builder: (BuildContext context, ThemeMode themeMode) {
-                //     return Padding(
-                //       padding: EdgeInsets.symmetric(horizontal: 20.w),
-                //       child: Row(
-                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //         children: [
-                //           Text('Dark Theme',style: Theme.of(context).textTheme.bodyMedium,),
-                //           Switch(
-                //             value: themeMode == ThemeMode.dark,
-                //             onChanged: (value){
-                //               context.read<ThemeCubit>().changeTheme();
-                //             },
-                //
-                //           ),
-                //         ],
-                //       ),
-                //     );
-                //   },
-                //
-                // ),
 
                 SizedBox(height: 20.h,),
 
-                TextButton.icon(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (builder)=>const BlockedUsers()));
-                  },
-                  icon: Icon(Icons.block, size:25.sp,),
-                  label: Text('Blocked Users',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>Profile(userDetails: state.userDetails,))),
+                    icon: Icons.person_2_rounded,
+                    text: 'Profile'
                 ),
-                SizedBox(height: 10.h,),
+                _divider(),
 
-                Divider(height: 1.h,),
-                SizedBox(height: 10.h,),
-
-                TextButton.icon(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (builder)=>const ShowWebView(link: 'https://hiphopboombox.com/terms')));
-                  },
-                  icon: Icon(Icons.policy_outlined, size:25.sp,),
-                  label: Text('Terms and Policy',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>const UserRaffles())).
+                        then((value){
+                          if(context.mounted && value=='refresh') context.read<AccountCubit>().isLoggedIn();
+                        }),
+                    icon: Icons.shop,
+                    text: 'Raffles'
                 ),
-                SizedBox(height: 10.h,),
+                _divider(),
 
-                Divider(height: 1.h,),
-                SizedBox(height: 10.h,),
-
-                TextButton.icon(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (builder)=>const ShowWebView(link: 'https://hiphopboombox.com/privacy')));
-                  },
-                  icon: Icon(Icons.verified_user_outlined, size:25.sp, ),
-                  label: Text('Privacy Policy',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>const BlockedUsers())),
+                    icon: Icons.block,
+                    text: 'Blocked Users'
                 ),
-                SizedBox(height: 10.h,),
+                _divider(),
 
-                Divider(height: 1.h,),
-                SizedBox(height: 10.h,),
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>
+                        const ShowWebView(link: 'https://hiphopboombox.com/terms'))),
+                    icon: Icons.policy_outlined,
+                    text: 'Terms and Policy'
+                ),
+                _divider(),
 
-                TextButton.icon(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (builder)=>const ShowWebView(link: 'https://hiphopboombox.com/v1/dmca')));
-                  },
-                  icon: Icon(Icons.lock,size:25.sp, ),
-                  label: Text('DCMA',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>
+                        const ShowWebView(link: 'https://hiphopboombox.com/privacy'))),
+                    icon: Icons.verified_user_outlined,
+                    text: 'Privacy Policy'
+                ),
+                _divider(),
+
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>
+                        const ShowWebView(link: 'https://hiphopboombox.com/v1/dmca'))),
+                    icon: Icons.lock,
+                    text: 'DCMA'
+                ),
+                _divider(),
+
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        Navigator.push(context, MaterialPageRoute(builder: (builder)=>
+                        const ShowWebView(link: 'https://www.hiphopboombox.com/eula'))),
+                    icon: Icons.privacy_tip_outlined,
+                    text: 'EULA'
+                ),
+                _divider(),
+
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        _showAlertDialog(context),
+                    icon: Icons.delete,
+                    text: 'Delete Account'
+                ),
+                _divider(),
+
+                _textBtn(
+                    context: context,
+                    onTap: ()=>
+                        context.read<AccountCubit>().logout(),
+                    icon: Icons.logout_rounded,
+                    text: 'Logout'
                 ),
 
-                SizedBox(height: 10.h,),
-
-                Divider(height: 1.h,),
-                SizedBox(height: 10.h,),
-
-                TextButton.icon(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (builder)=>const ShowWebView(link: 'https://www.hiphopboombox.com/eula')));
-                  },
-                  icon: Icon(Icons.privacy_tip_outlined,size:25.sp),
-                  label: Text('EULA',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                SizedBox(height: 10.h,),
-
-                Divider(height: 1.h),
-                SizedBox(height: 10.h,),
-
-                TextButton.icon(
-                  onPressed: (){
-                    _showAlertDialog(context);
-                  },
-                  icon: Icon(Icons.delete, size:25.sp),
-                  label: Text('Delete Account',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                SizedBox(height: 10.h,),
-
-                Divider(height: 1.h,),
-                SizedBox(height: 10.h,),
-
-                TextButton.icon(
-                  onPressed: (){
-                    context.read<AccountCubit>().logout();
-                  },
-                  icon: Icon(Icons.logout_rounded, size:25.sp,),
-                  label: Text('Logout',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
                 SizedBox(height: 10.h,),
                 BlocBuilder<AppVersionCubit,String>(
                   builder: (BuildContext context, state) {
@@ -220,6 +192,12 @@ class Account extends StatelessWidget {
               ],
             ),
           );
+        }
+
+        else if(state is AccountLoggedOut){
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (builder)=>const MyHomePage()),(Route<dynamic> route) => false);
+          });
         }
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -288,6 +266,25 @@ class Account extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+
+  Widget _textBtn(
+      {required BuildContext context, required VoidCallback onTap, required IconData icon, required String text}){
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size:25.sp,),
+      label: Text(text,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+    );
+  }
+
+  Widget _divider(){
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 5.h),
+      child: const Divider(),
     );
   }
 }

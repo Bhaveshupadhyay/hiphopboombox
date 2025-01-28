@@ -24,6 +24,15 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram</string>
+		<string>youtube</string>
+		<string>tiktok</string>
+		<string>fbapi</string>
+		<string>twitter</string>
+		<string>threads</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
@@ -54,14 +63,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>LSApplicationQueriesSchemes</key>
-        <array>
-            <string>instagram</string>
-            <string>youtube</string>
-            <string>tiktok</string>
-            <string>fbapi</string>
-            <string>twitter</string>
-            <string>threads</string>
-        </array>
 </dict>
 </plist>

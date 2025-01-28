@@ -147,7 +147,7 @@ class Register extends StatelessWidget {
                         else if(state is RegisterSuccess){
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             Navigator.push(context, MaterialPageRoute(builder: (builder)=>
-                                Profile(email: _emailController.text, password: _passController.text, isUserExist: false)));
+                                Profile(email: _emailController.text, password: _passController.text)));
                           });
                         }
                         else if(state is RegisterLoading){
